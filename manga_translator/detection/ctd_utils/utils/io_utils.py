@@ -5,8 +5,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 import json
+from typing import Union, List
 
-IMG_EXT = ['.bmp', '.jpg', '.png', '.jpeg']
+IMG_EXT = {'.bmp', '.jpg', '.png', '.jpeg', '.webp'}
 
 NP_BOOL_TYPES = (np.bool_, np.bool8)
 NP_FLOAT_TYPES = (np.float_, np.float16, np.float32, np.float64)
@@ -27,17 +28,33 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 def find_all_imgs(img_dir, abs_path=False):
-    imglist = list()
-    for filep in glob.glob(osp.join(img_dir, "*")):
-        filename = osp.basename(filep)
+    imglist = []
+    dir_list = os.listdir(img_dir)
+    for filename in dir_list:
         file_suffix = Path(filename).suffix
         if file_suffix.lower() not in IMG_EXT:
             continue
         if abs_path:
-            imglist.append(filep)
+            imglist.append(osp.join(img_dir, filename))
         else:
             imglist.append(filename)
     return imglist
+
+
+def find_all_files_recursive(tgt_dir: Union[List, str], ext, exclude_dirs={}):
+    if isinstance(tgt_dir, str):
+        tgt_dir = [tgt_dir]
+
+    filelst = []
+    for d in tgt_dir:
+        for root, _, files in os.walk(d):
+            if osp.basename(root) in exclude_dirs:
+                continue
+            for f in files:
+                if Path(f).suffix.lower() in ext:
+                    filelst.append(osp.join(root, f))
+    
+    return filelst
 
 def imread(imgpath, read_type=cv2.IMREAD_COLOR):
     # img = cv2.imread(imgpath, read_type)

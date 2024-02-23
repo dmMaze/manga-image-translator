@@ -484,9 +484,13 @@ class MangaTranslator():
                                                      verbose=self.verbose)
         new_text_regions = []
         for region in text_regions:
-            if len(region.text) >= ctx.min_text_length \
-                    and not is_valuable_text(region.text) \
-                    or (not ctx.no_text_lang_skip and langcodes.tag_distance(region.source_lang, ctx.target_lang) == 0):
+            filter_region = True
+            if hasattr(ctx, 'filter_region') and ctx.filter_region == False:
+                filter_region = False
+            if filter_region and (
+                len(region.text) >= ctx.min_text_length \
+                        and not is_valuable_text(region.text) \
+                        or (not ctx.no_text_lang_skip and langcodes.tag_distance(region.source_lang, ctx.target_lang) == 0)):
                 if region.text.strip():
                     logger.info(f'Filtered out: {region.text}')
             else:
